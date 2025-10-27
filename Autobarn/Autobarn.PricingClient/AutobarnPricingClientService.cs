@@ -1,12 +1,18 @@
 using Autobarn.Messages;
+using Autobarn.Pricing;
 using EasyNetQ;
-
+using Grpc.Net.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Autobarn.PricingClient;
 
-public class AutobarnPricingClientService(IBus bus, ILogger<AutobarnPricingClientService> logger) : IHostedService {
+public class AutobarnPricingClientService(
+	IBus bus,
+	ILogger<AutobarnPricingClientService> logger,
+	Pricer.PricerClient pricerClient
+) : IHostedService {
+	private Pricer.PricerClient pricerClient = pricerClient;
 
 	private const string SUBSCRIBER_ID = "autobarn.pricingclient";
 
@@ -22,8 +28,15 @@ public class AutobarnPricingClientService(IBus bus, ILogger<AutobarnPricingClien
 		return Task.CompletedTask;
 	}
 
-	private Task HandleNewVehicleMessage(NewVehicleMessage message) {
-		Console.WriteLine($"New vehicle listed: {message}");
-		return Task.CompletedTask;
+	private async Task HandleNewVehicleMessage(NewVehicleMessage message) {
+		logger.LogInformation($"Calculating a price for {message}...");
+		var req = new PriceRequest {
+			Color = message.Color,
+			Make = message.Manufacturer,
+			Model = message.ModelName,
+			Year = message.Year
+		};
+		var reply = await pricerClient.GetPriceAsync(req);
+		logger.LogInformation("{currency} {price}", reply.Currency, reply.Price);
 	}
 }
