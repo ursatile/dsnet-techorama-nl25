@@ -1,7 +1,6 @@
 using Autobarn.Messages;
 using Autobarn.Pricing;
 using EasyNetQ;
-using Grpc.Net.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -14,7 +13,7 @@ public class AutobarnPricingClientService(
 ) : IHostedService {
 	private Pricer.PricerClient pricerClient = pricerClient;
 
-	private const string SUBSCRIBER_ID = "autobarn.pricingclient";
+	private const string SUBSCRIBER_ID = "autobarn.pricingclient_dylan";
 
 	public async Task StartAsync(CancellationToken token) {
 		await bus.PubSub.SubscribeAsync<NewVehicleMessage>(
@@ -32,11 +31,14 @@ public class AutobarnPricingClientService(
 		logger.LogInformation($"Calculating a price for {message}...");
 		var req = new PriceRequest {
 			Color = message.Color,
-			Make = message.Manufacturer,
+			Make = message.Manufacturer + "DYLAN",
 			Model = message.ModelName,
 			Year = message.Year
 		};
 		var reply = await pricerClient.GetPriceAsync(req);
 		logger.LogInformation("{currency} {price}", reply.Currency, reply.Price);
+		var newVehiclePriceMessage = message.WithPrice(reply.Price, reply.Currency);
+		await bus.PubSub.PublishAsync(newVehiclePriceMessage);
+		logger.LogInformation("Published price to bus: {currency} {price}", reply.Currency, reply.Price);
 	}
 }

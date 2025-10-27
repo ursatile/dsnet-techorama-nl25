@@ -9,7 +9,7 @@ public class PricerService(ILogger<PricerService> logger) : Pricer.PricerBase {
 		logger.LogInformation($"Calculating price for {request}");
 		return Task.FromResult(new PriceReply {
 			Currency = "EUR",
-			Price = 12345
+			Price = Random.Shared.Next(5000, 50000)
 		});
 	}
 }
