@@ -5,8 +5,12 @@ var bus = RabbitHutch.CreateBus(AMQP);
 
 Console.WriteLine("Welcome to the subscriber!");
 
-const string SUBSCRIBER_ID = "techorama";
+const string SUBSCRIBER_ID = "dylan";
 await bus.PubSub.SubscribeAsync<Greeting>(SUBSCRIBER_ID, message => {
+	if (message.Number % 5 == 0) {
+		Console.WriteLine("MESSAGE FAILED ===================");
+		throw new Exception("Bad message exception");
+	}
 	Console.WriteLine(message);
 });
 

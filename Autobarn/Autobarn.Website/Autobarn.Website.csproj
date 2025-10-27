@@ -8,11 +8,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="EasyNetQ" Version="7.8.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.5" />
+		<PackageReference Include="newtonSoft.Json" Version="13.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Autobarn.Data\Autobarn.Data.csproj" />
+		<ProjectReference Include="..\Autobarn.Messages\Autobarn.Messages.csproj" />
 		<InternalsVisibleTo Include="Autobarn.Website.Tests" />
 	</ItemGroup>
 

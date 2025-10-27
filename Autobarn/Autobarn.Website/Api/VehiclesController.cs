@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Autobarn.Data;
 using Autobarn.Data.Entities;
+using Autobarn.Messages;
 using Autobarn.Website.Models;
+using EasyNetQ;
 
 namespace Autobarn.Website.Api;
 
@@ -10,7 +12,8 @@ namespace Autobarn.Website.Api;
 [ApiController]
 public class VehiclesController(
 	AutobarnDbContext db,
-	ILogger<VehiclesController> logger
+	ILogger<VehiclesController> logger,
+	IBus bus
 ) : ControllerBase {
 
 	[HttpGet]
@@ -66,9 +69,21 @@ public class VehiclesController(
 			throw;
 		}
 		logger.LogInformation($"Created vehicle: {vehicle}");
+		await PublishNewVehicleMessage(vehicle);
 		return CreatedAtAction("GetVehicle", new { id = vehicle.Registration }, vehicle);
 	}
 
+	private async Task PublishNewVehicleMessage(Vehicle vehicle) {
+		var message = new NewVehicleMessage {
+			Color = vehicle.Color,
+			Year = vehicle.Year,
+			Registration = vehicle.Registration,
+			ModelCode = vehicle.ModelCode,
+			Manufacturer = vehicle.Model?.Make?.Name ?? "(missing)",
+			ModelName = vehicle.Model?.Name ?? "(missing)"
+		};
+		await bus.PubSub.PublishAsync(message);
+	}
 
 	// DELETE: api/Vehicles/5
 	[HttpDelete("{id}")]

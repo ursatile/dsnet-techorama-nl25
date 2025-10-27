@@ -7,7 +7,8 @@ var bus = RabbitHutch.CreateBus(AMQP);
 var number = 0;
 Console.WriteLine("Press a key to publish a message...");
 while (true) {
-	Console.ReadKey();
+	// Console.ReadKey();
+	Thread.Sleep(TimeSpan.FromSeconds(1));
 	var greeting = new Greeting() {
 		Name = Environment.MachineName,
 		Number = number++

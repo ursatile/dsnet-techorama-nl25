@@ -1,4 +1,5 @@
 using Autobarn.Data;
+using EasyNetQ;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,10 @@ builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlite(sq
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+var amqp = builder.Configuration.GetConnectionString("AutobarnRabbitMQ");
+var bus = RabbitHutch.CreateBus(amqp);
+builder.Services.AddSingleton(bus);
 
 var app = builder.Build();
 
